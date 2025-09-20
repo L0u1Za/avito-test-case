@@ -29,7 +29,7 @@ class CharTokenizer:
     def encode(self, text):
         """Convert text to token IDs (character codes)."""
         tokens = self.tokenize(text)
-        return [ord(char) for char in tokens]
+        return [ord(char) if ord(char) < self.vocab_size else self.special_tokens['[UNK]'] for char in tokens]
     
     def decode(self, token_ids):
         """Convert token IDs back to text."""
@@ -37,14 +37,14 @@ class CharTokenizer:
     
     def convert_tokens_to_ids(self, tokens):
         """Convert tokens (characters) to IDs."""
-        return [ord(token) for token in tokens]
+        return [ord(char) if ord(char) < self.vocab_size else self.special_tokens['[UNK]'] for char in tokens]
     
     def convert_ids_to_tokens(self, ids):
         """Convert IDs back to tokens (characters)."""
         return [chr(id_val) if id_val > 3 else '[PAD]' for id_val in ids]
 
 class SpaceDataset(Dataset):
-	def __init__(self, csv_path, max_length=512):
+	def __init__(self, csv_path, max_length=1024):
 		self.data = pd.read_csv(csv_path)
 		self.tokenizer = CharTokenizer()
 		self.max_length = max_length

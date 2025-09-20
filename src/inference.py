@@ -49,6 +49,7 @@ def main():
 
 	model = SpaceModel(vocab_size)
 	model.load_state_dict(torch.load(args.model_path, weights_only=True))
+	model.to(device)
 	model.eval()
 	
 	all_tokens = []
