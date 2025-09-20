@@ -2,9 +2,9 @@ import pandas as pd
 import csv
 import re
 
-def preprocess_dataset(path):
+def preprocess_dataset(path='../../data/dataset_1937770_3.txt'):
     rows = []
-    with open('../../data/dataset_1937770_3.txt', encoding='utf-8') as f:
+    with open(path, encoding='utf-8') as f:
         for line in f:
             line = line.rstrip('\n')
             # split only on first comma:
@@ -84,6 +84,15 @@ def post_process_text(text: str) -> str:
     s = text.strip()
     s = re.sub(r'\s+', ' ', s)
     return s
+
+def remake_text(tokens, labels):
+    remade_text = ""
+    for (i, token) in enumerate(tokens):
+        tok = token.replace('##', '')
+        if labels[i] == 1:
+            tok += ' '
+        remade_text += tok
+    return tokens, labels, remade_text
 
 # Пример использования
 if __name__ == "__main__":
