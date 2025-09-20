@@ -1,16 +1,52 @@
 import torch
 from torch.utils.data import Dataset, DataLoader
 import pandas as pd
-from transformers import AutoTokenizer
 import torch.nn as nn
 import torch.optim as optim
 from utils import average_f1
 from tqdm import tqdm
 
+class CharTokenizer:
+    """Simple character-based tokenizer where each character is a token."""
+    
+    def __init__(self):
+        # We can define special tokens if needed
+        self.special_tokens = {
+            '[PAD]': 0,
+            '[UNK]': 1,
+            '[CLS]': 2,
+            '[SEP]': 3
+        }
+        self.pad_token_id = 0
+        self.vocab_size = 65536  # Unicode range for character encoding
+        
+    def tokenize(self, text):
+        """Tokenize text into individual characters."""
+        if not isinstance(text, str):
+            return []
+        return list(text)
+    
+    def encode(self, text):
+        """Convert text to token IDs (character codes)."""
+        tokens = self.tokenize(text)
+        return [ord(char) for char in tokens]
+    
+    def decode(self, token_ids):
+        """Convert token IDs back to text."""
+        return ''.join([chr(token_id) for token_id in token_ids if token_id > 3])  # Skip special tokens
+    
+    def convert_tokens_to_ids(self, tokens):
+        """Convert tokens (characters) to IDs."""
+        return [ord(token) for token in tokens]
+    
+    def convert_ids_to_tokens(self, ids):
+        """Convert IDs back to tokens (characters)."""
+        return [chr(id_val) if id_val > 3 else '[PAD]' for id_val in ids]
+
 class SpaceDataset(Dataset):
-	def __init__(self, csv_path, tokenizer_name="cointegrated/rubert-tiny2", max_length=128):
+	def __init__(self, csv_path, max_length=512):
 		self.data = pd.read_csv(csv_path)
-		self.tokenizer = AutoTokenizer.from_pretrained(tokenizer_name)
+		self.tokenizer = CharTokenizer()
 		self.max_length = max_length
 
 	def __len__(self):
@@ -122,7 +158,7 @@ class Trainer:
 				# Remove padding tokens
 				if token == '[PAD]':
 					continue
-				s += token.replace('##', '')
+				s += token  # No need to replace '##' for character tokens
 				if label == 1:
 					s += ' '
 			pred_texts.append(s.strip())

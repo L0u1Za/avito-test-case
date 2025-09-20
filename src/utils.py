@@ -88,7 +88,7 @@ def post_process_text(text: str) -> str:
 def remake_text(tokens, labels):
     remade_text = ""
     for (i, token) in enumerate(tokens):
-        tok = token.replace('##', '')
+        tok = token  # No need to replace '##' for character tokens
         if labels[i] == 1:
             tok += ' '
         remade_text += tok

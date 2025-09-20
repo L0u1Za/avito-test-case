@@ -1,18 +1,17 @@
 import torch
 from torch.utils.data import Dataset, DataLoader
 import pandas as pd
-from transformers import AutoTokenizer
 from tqdm import tqdm
 
 import utils
-from models import SpaceModel
+from models import SpaceModel, CharTokenizer
 import os
 import argparse
 
 class SpaceDatasetTest(Dataset):
-	def __init__(self, csv_path, tokenizer_name="cointegrated/rubert-tiny2", max_length=128):
+	def __init__(self, csv_path, max_length=512):
 		self.data = utils.preprocess_dataset(csv_path)
-		self.tokenizer = AutoTokenizer.from_pretrained(tokenizer_name)
+		self.tokenizer = CharTokenizer()
 		self.max_length = max_length
 
 	def __len__(self):
@@ -34,7 +33,6 @@ class SpaceDatasetTest(Dataset):
 def main():
 	parser = argparse.ArgumentParser(description="Train space restoration model")
 	parser.add_argument('--test_path', type=str, default=os.path.join(os.path.dirname(__file__), '..', 'data', 'dataset_1937770_3.txt'))
-	parser.add_argument('--tokenizer_name', type=str, default="cointegrated/rubert-tiny2")
 	parser.add_argument('--batch_size', type=int, default=32)
 	parser.add_argument('--model_path', type=str, default=os.path.join(os.path.dirname(__file__), '..', 'data', 'space_model.pt'))
 	parser.add_argument('--output_dir', type=str, default=os.path.join(os.path.dirname(__file__), '..', 'data'))
@@ -43,10 +41,10 @@ def main():
 
 	device = "cuda" if torch.cuda.is_available() else "cpu"
 
-	tokenizer = AutoTokenizer.from_pretrained(args.tokenizer_name)
+	tokenizer = CharTokenizer()
 	vocab_size = tokenizer.vocab_size
 
-	test_dataset = SpaceDatasetTest(args.test_path, tokenizer_name=args.tokenizer_name)
+	test_dataset = SpaceDatasetTest(args.test_path)
 	test_loader = DataLoader(test_dataset, batch_size=args.batch_size, shuffle=False)
 
 	model = SpaceModel(vocab_size)
@@ -76,8 +74,8 @@ def main():
 			# Remove padding tokens
 			if token == '[PAD]':
 				continue
-			s += token.replace('##', '')
-			ln += len(token.replace('##', ''))
+			s += token  # No need to replace '##' for character tokens
+			ln += len(token)  # Each character token has length 1
 			if label == 1:
 				pred_pos_cur.append(ln)
 				s += ' '

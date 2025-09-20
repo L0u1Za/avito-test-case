@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
-from transformers import AutoTokenizer
 import re
+from models import CharTokenizer
 
 if __name__ == "__main__":
     import os
@@ -15,39 +15,49 @@ if __name__ == "__main__":
         df['text'] = df['Query'].apply(lambda x: re.sub(r'\s+', ' ', x))
         df['text_no_spaces'] = df['text'].apply(lambda x: ''.join(x.split()))
     
-    # Используем предобученный токенизатор
-    tokenizer = AutoTokenizer.from_pretrained("cointegrated/rubert-tiny2")
+    # Используем символьный токенизатор
+    tokenizer = CharTokenizer()
 
     # Функция для токенизации и разметки
     def tokenize_and_label(row):
-        text = row['text']
-        text_no_spaces = row['text_no_spaces']
+        text = row['text']  # Original text with spaces
+        text_no_spaces = row['text_no_spaces']  # Text without spaces
+        
         if not isinstance(text, str) or not isinstance(text_no_spaces, str) or not text_no_spaces:
-            return [], []
+            return [], [], ""
+        
+        # Tokenize the text without spaces (each character becomes a token)
         tokens = tokenizer.tokenize(text_no_spaces)
         labels = []
-        idx_in_text = 0
-        for token in tokens:
-            cur_token_no_special_chars = token.replace('##', '')
-            cur_text = ''
-            while idx_in_text < len(text):
-                if text[idx_in_text] != ' ':
-                    cur_text += text[idx_in_text]
-                if cur_text == cur_token_no_special_chars:
-                    break
-                idx_in_text += 1
-            idx_in_text += 1
-            if idx_in_text < len(text) and text[idx_in_text] == ' ':
+        
+        # Create a mapping to determine where spaces should be
+        text_chars = [char for char in text if char != ' ']  # Characters without spaces
+        space_positions = set()  # Positions where spaces should be after characters
+        
+        # Find positions where spaces should be inserted
+        char_idx = 0
+        for i, char in enumerate(text):
+            if char == ' ':
+                # Mark that there should be a space after the previous character
+                if char_idx > 0:
+                    space_positions.add(char_idx - 1)
+            else:
+                char_idx += 1
+        
+        # Create labels: 1 if space should follow this character, 0 otherwise
+        for i, token in enumerate(tokens):
+            if i in space_positions:
                 labels.append(1)
             else:
                 labels.append(0)
-
+        
+        # Reconstruct text using tokens and labels
         remade_text = ""
-        for (i, token) in enumerate(tokens):
-            tok = token.replace('##', '')
-            if labels[i] == 1:
-                tok += ' '
-            remade_text += tok
+        for i, token in enumerate(tokens):
+            remade_text += token
+            if i < len(labels) and labels[i] == 1:
+                remade_text += ' '
+        
         return tokens, labels, remade_text
 
     # Применить функцию к датасетам
