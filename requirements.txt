@@ -1,6 +1,6 @@
 pandas
 numpy
 torch
-sklearn
+scikit-learn
 tqdm
 datasets
