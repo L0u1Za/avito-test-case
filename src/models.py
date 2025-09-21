@@ -33,7 +33,7 @@ class CharTokenizer:
     
     def decode(self, token_ids):
         """Convert token IDs back to text."""
-        return ''.join([chr(token_id) for token_id in token_ids if token_id > 3])  # Skip special tokens
+        return ''.join([chr(token_id) if token_id > 3 else '$' for token_id in token_ids])  # Skip special tokens
     
     def convert_tokens_to_ids(self, tokens):
         """Convert tokens (characters) to IDs."""
@@ -70,10 +70,10 @@ class SpaceDataset(Dataset):
 		return torch.tensor(input_ids), torch.tensor(labels), text
 
 class SpaceModel(nn.Module):
-	def __init__(self, vocab_size, embedding_dim=128, hidden_dim=128):
+	def __init__(self, vocab_size, embedding_dim=64, hidden_dim=128):
 		super().__init__()
 		self.embedding = nn.Embedding(vocab_size, embedding_dim, padding_idx=0)
-		self.lstm = nn.LSTM(embedding_dim, hidden_dim, batch_first=True, bidirectional=True)
+		self.lstm = nn.LSTM(embedding_dim, hidden_dim, num_layers=3, batch_first=True, bidirectional=True, dropout=0.2)
 		self.fc = nn.Linear(hidden_dim * 2, 2)  # 2 classes: space/no space
 
 	def forward(self, x):

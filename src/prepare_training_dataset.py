@@ -11,17 +11,27 @@ import argparse
 if __name__ == "__main__":
 	# Загрузка датасета
 	parser = argparse.ArgumentParser(description="Prepare dataset for train")
+	parser.add_argument('--input_dir', type=str, default=os.path.join(os.path.dirname(__file__), '..', 'data'))
 	parser.add_argument('--output_dir', type=str, default=os.path.join(os.path.dirname(__file__), '..', 'data'))
 	args = parser.parse_args()
 	
 
 	df = load_dataset("vanya-robot/russian_summarization", split='train')
 	df = df.to_pandas()
+ 
+	df['text'] = df['input'].apply(lambda x: x[:1024])
+	df = df[['text']]
+ 
+	df_ru_reviews = pd.read_csv(os.path.join(args.input_dir, 'sentiment_dataset.csv'))
+	df_ru_reviews['text'] = df['text'].apply(lambda x: x[:1024])
+	df_ru_reviews = df[['text']]
+
+	df = pd.concat([df, df_ru_reviews])
 	df_train, df_val = train_test_split(df, test_size=0.2, shuffle=True)
 
 	for df in (df_train, df_val):
 		# Удаление всех пробелов
-		df['text'] = df['input'].apply(lambda x: x[:1024]).apply(lambda x: re.sub(r'\s+', ' ', x))
+		df['text'] = df['text'].apply(lambda x: re.sub(r'\s+', ' ', x))
 		df['text_no_spaces'] = df['text'].apply(lambda x: ''.join(x.split()))
 	
 	# Используем символьный токенизатор
