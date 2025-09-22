@@ -36,11 +36,15 @@
 download_dataset.sh
 ```
 
-2. `python src/prepare_training_dataset.py` Подготовит датасеты для обучения модели. На выходе 2 `.csv` файла для трейна и валидации.
+2. `python src/prepare_training_dataset.py --input_dir <input_dir> --output_dir <output_dir>` Подготовит датасеты для обучения модели. 
 
+На выходе 2 `.csv` файла для трейна и валидации `<output_dir>/train.csv` `<output_dir>/val.csv`
 
-3. `python src/main.py` - обучение. На выходе `.pt` файл с весами модели.
+3. `python src/main.py --train_path <наш собранный train.csv> --val_path <наш собранный val.csv> --batch_size <value> --epochs <value> --output_path <value>` - обучение.
 
+На выходе `<output_path>` `.pt` файл с весами модели.
 
-4. `python src/inference.py` - инференс на наших тестовых данных. На выходе 2 `.csv` файла.
+4. `python src/inference.py --test_path <тестовый датасет dataset_1937770_3.txt> --batch_size <value> --model_path <путь к нашей обученной модели> --output_dir <выходная папка, куда кладем сгенерированные ответы> ` - инференс на наших тестовых данных.
+
+На выходе 2 `.csv` файла `<output_dir>/output.csv` - выходной датасет с дополнительными колонками для визуального сравнения результата `<output_dir>/stepik.csv` - настоящий выходной файл для платформы Stepik.
 
