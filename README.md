@@ -48,3 +48,11 @@ download_dataset.sh
 
 На выходе 2 `.csv` файла `<output_dir>/output.csv` - выходной датасет с дополнительными колонками для визуального сравнения результата `<output_dir>/stepik.csv` - настоящий выходной файл для платформы Stepik.
 
+## Веса модели
+
+Если не хочется тренировать модель, веса лежат [тут](https://drive.google.com/file/d/1DdN1YL_1Ir054AwIJJKRjMzBN5jpCBdL/view?usp=sharing)
+
+## GPU
+
+Для тренировки использовалась P100 с kaggle. Обучение занимает ~3 часа.
+
